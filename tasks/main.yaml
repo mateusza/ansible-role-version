@@ -1,0 +1,29 @@
+---
+- name: List roles
+  ansible.builtin.debug:
+    var: role_names
+
+- name: Get role versions
+  vars:
+    script: 'scripts/role_versions.py'
+  delegate_to: localhost
+  ansible.builtin.command:
+    cmd: 'python3 {{ script }}'
+    stdin: '{{ ansible_play_role_names }}'
+    chdir: '{{ role_path }}'
+  check_mode: false
+  changed_when: false
+  register: role_versions_cmd
+
+- name: Deploy role status
+  vars:
+    installed_roles: '{{ role_versions_cmd.stdout | from_json }}'
+    filename: "roles-{{ '%Y-%m-%d-%H%M%S' | strftime }}.json"
+  ansible.builtin.copy:
+    content: '{{ installed_roles | to_json(indent=2) }}'
+    dest: '/var/local/{{ filename }}'
+    mode: '0400'
+
+- name: Show versions
+  ansible.builtin.debug:
+    msg: '{{ role_versions_cmd.stdout | from_json }}'
