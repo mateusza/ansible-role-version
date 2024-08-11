@@ -1,0 +1,17 @@
+name: Check ansible syntax
+on:
+  - push
+
+jobs:
+  ansible_lint:
+    name: "Check Ansible syntax with ansible-lint"
+    runs-on: ubuntu-latest
+    container:
+      image: pr1v/ansible-lint:latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Run ansible-lint
+        run: ansible-lint
